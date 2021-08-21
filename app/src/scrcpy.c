@@ -21,6 +21,7 @@
 #include "recorder.h"
 #include "screen.h"
 #include "server.h"
+#include "serve.h"
 #include "stream.h"
 #include "tiny_xpm.h"
 #include "util/log.h"
@@ -35,6 +36,7 @@ struct scrcpy {
     struct stream stream;
     struct decoder decoder;
     struct recorder recorder;
+    struct serve serve;
 #ifdef HAVE_V4L2
     struct sc_v4l2_sink v4l2_sink;
 #endif
@@ -260,6 +262,7 @@ scrcpy(const struct scrcpy_options *options) {
     bool controller_initialized = false;
     bool controller_started = false;
     bool screen_initialized = false;
+    bool serve_started = false;
 
     bool record = !!options->record_filename;
     struct server_params params = {
@@ -280,6 +283,19 @@ scrcpy(const struct scrcpy_options *options) {
         .force_adb_forward = options->force_adb_forward,
         .power_off_on_close = options->power_off_on_close,
     };
+    struct serve* serv = NULL;
+    if (options->serve) {
+        serve_init(&s->serve, options->serve_protocol, options->serve_ip, options->serve_port);
+
+        serv = &s->serve;
+    }
+
+    if (options->serve) {
+        if (!serve_start(&s->serve)) {
+            goto end;
+        }
+    }
+
     if (!server_start(&s->server, &params)) {
         goto end;
     }
@@ -333,7 +349,7 @@ scrcpy(const struct scrcpy_options *options) {
     const struct stream_callbacks stream_cbs = {
         .on_eos = stream_on_eos,
     };
-    stream_init(&s->stream, s->server.video_socket, &stream_cbs, NULL);
+    stream_init(&s->stream, s->server.video_socket, &stream_cbs, NULL, serv);
 
     if (dec) {
         stream_add_sink(&s->stream, &dec->packet_sink);
@@ -430,6 +446,10 @@ end:
     }
     if (screen_initialized) {
         screen_interrupt(&s->screen);
+    }
+
+    if (serve_started) {
+        serve_stop(&s->serve);
     }
 
     if (server_started) {

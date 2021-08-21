@@ -9,6 +9,7 @@
 #include <SDL2/SDL_platform.h>
 
 #include "adb.h"
+#include "serve.h"
 #include "util/log.h"
 #include "util/net.h"
 #include "util/str_util.h"

@@ -61,6 +61,7 @@ struct scrcpy_options {
     const char *window_title;
     const char *push_target;
     const char *render_driver;
+    char *serve_protocol;
     const char *codec_options;
     const char *encoder_name;
     const char *v4l2_device;
@@ -78,6 +79,8 @@ struct scrcpy_options {
     uint16_t window_width;
     uint16_t window_height;
     uint32_t display_id;
+    uint32_t serve_ip;
+    uint16_t serve_port;
     bool show_touches;
     bool fullscreen;
     bool always_on_top;
@@ -87,6 +90,7 @@ struct scrcpy_options {
     bool prefer_text;
     bool window_borderless;
     bool mipmaps;
+    bool serve;
     bool stay_awake;
     bool force_adb_forward;
     bool disable_screensaver;
@@ -126,6 +130,8 @@ struct scrcpy_options {
     .window_width = 0, \
     .window_height = 0, \
     .display_id = 0, \
+    .serve_ip = 0, \
+    .serve_port = 0, \
     .show_touches = false, \
     .fullscreen = false, \
     .always_on_top = false, \
@@ -135,6 +141,7 @@ struct scrcpy_options {
     .prefer_text = false, \
     .window_borderless = false, \
     .mipmaps = true, \
+    .serve = false, \
     .stay_awake = false, \
     .force_adb_forward = false, \
     .disable_screensaver = false, \

@@ -19,7 +19,7 @@ struct stream {
 
     struct sc_packet_sink *sinks[STREAM_MAX_SINKS];
     unsigned sink_count;
-
+    struct serve *serve;
     AVCodecContext *codec_ctx;
     AVCodecParserContext *parser;
     // successive packets may need to be concatenated, until a non-config
@@ -36,7 +36,7 @@ struct stream_callbacks {
 
 void
 stream_init(struct stream *stream, socket_t socket,
-            const struct stream_callbacks *cbs, void *cbs_userdata);
+            const struct stream_callbacks *cbs, void *cbs_userdata, struct serve *serve);
 
 void
 stream_add_sink(struct stream *stream, struct sc_packet_sink *sink);

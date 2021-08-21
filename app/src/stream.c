@@ -8,6 +8,7 @@
 #include "decoder.h"
 #include "events.h"
 #include "recorder.h"
+#include "serve.h"
 #include "util/buffer_util.h"
 #include "util/log.h"
 
@@ -89,7 +90,21 @@ stream_parse(struct stream *stream, AVPacket *packet) {
         packet->flags |= AV_PKT_FLAG_KEY;
     }
 
-    packet->dts = packet->pts;
+    
+
+    if (stream->serve) {
+        if (stream->serve->isServeReady == true) {
+            //LOGI("Serve is processing");
+            packet->dts = packet->pts;
+
+            if (!serve_push(stream->serve, packet)) {
+                LOGE("Could not serve packet");
+                return false;
+            }
+        }
+    } else {
+        packet->dts = packet->pts;
+    }
 
     bool ok = push_packet_to_sinks(stream, packet);
     if (!ok) {
@@ -263,9 +278,10 @@ end:
 
 void
 stream_init(struct stream *stream, socket_t socket,
-            const struct stream_callbacks *cbs, void *cbs_userdata) {
+            const struct stream_callbacks *cbs, void *cbs_userdata, struct serve *serve) {
     stream->socket = socket;
     stream->pending = NULL;
+    stream->serve = serve;
     stream->sink_count = 0;
 
     assert(cbs && cbs->on_eos);
